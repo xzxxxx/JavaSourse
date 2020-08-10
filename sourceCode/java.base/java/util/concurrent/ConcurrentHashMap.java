@@ -780,7 +780,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     /**
      * The next table to use; non-null only while resizing.
      */
-    private transient volatile Node<K,V>[] nextTable;
+    private transient volatile Node<K,V>[] nextTable; //扩容时所需要的tab[]
 
     /**
      * Base counter value, used mainly when there is no contention,
@@ -1014,7 +1014,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         for (Node<K,V>[] tab = table;;) { //？为何要死循环
             Node<K,V> f; int n, i, fh; K fk; V fv;
             if (tab == null || (n = tab.length) == 0)
-                tab = initTable();
+                tab = initTable(); //lazyInit 第一次put时才初始化数组
             else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
                 if (casTabAt(tab, i, null, new Node<K,V>(hash, key, value)))
                     break;                   // cas的方式设置tab[i]处的第一个元素
@@ -1028,9 +1028,9 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                 return fv;
             else {
                 V oldVal = null;
-                synchronized (f) {
+                synchronized (f) { //在tab[i]处是链表时，锁的是第一个节点，红黑树时锁的是整个TreeBin对象
                     if (tabAt(tab, i) == f) {
-                        if (fh >= 0) { //tab[i]处元素还没有转化为TreeBin
+                        if (fh >= 0) { //tab[i]还是链表
                             binCount = 1;
                             for (Node<K,V> e = f;; ++binCount) {
                                 K ek;
@@ -2399,7 +2399,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                             @SuppressWarnings("unchecked")
                             Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n];
                             table = nt;
-                            sc = n - (n >>> 2);
+                            sc = n - (n >>> 2); // sc = 0.75n
                         }
                     } finally {
                         sizeCtl = sc;
@@ -2421,7 +2421,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * Moves and/or copies the nodes in each bin to new table. See
      * above for explanation.
      */
-    private final void transfer(Node<K,V>[] tab, Node<K,V>[] nextTab) {
+    private final void transfer(Node<K,V>[] tab, Node<K,V>[] nextTab) { //nextTab 为扩容后的新数组
         int n = tab.length, stride;
         if ((stride = (NCPU > 1) ? (n >>> 3) / NCPU : n) < MIN_TRANSFER_STRIDE)
             stride = MIN_TRANSFER_STRIDE; // subdivide range
@@ -2665,7 +2665,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     private final void treeifyBin(Node<K,V>[] tab, int index) {
         Node<K,V> b; int n;
         if (tab != null) {
-            if ((n = tab.length) < MIN_TREEIFY_CAPACITY) //数组长度未达到最小树化容量，进行扩容
+            if ((n = tab.length) < MIN_TREEIFY_CAPACITY) //数组长度未达到最小树化容量 64，进行扩容
                 tryPresize(n << 1);
             else if ((b = tabAt(tab, index)) != null && b.hash >= 0) {
                 synchronized (b) {
@@ -2681,7 +2681,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                                 tl.next = p;
                             tl = p;
                         }
-                        setTabAt(tab, index, new TreeBin<K,V>(hd));
+                        setTabAt(tab, index, new TreeBin<K,V>(hd)); //将整个红黑树放入TreeBin中
                     }
                 }
             }
@@ -2770,7 +2770,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * not) to complete before tree restructuring operations.
      * Use TreeBin to represent a whole TreeNodes
      */
-    static final class TreeBin<K,V> extends Node<K,V> {
+    static final class TreeBin<K,V> extends Node<K,V> { //用TreeBin表示一整颗红黑树
         TreeNode<K,V> root;
         volatile TreeNode<K,V> first;
         volatile Thread waiter;

@@ -1019,7 +1019,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                 if (casTabAt(tab, i, null, new Node<K,V>(hash, key, value)))
                     break;                   // cas的方式设置tab[i]处的第一个元素
             }
-            else if ((fh = f.hash) == MOVED) //若tab正在扩容，则帮助其扩容
+            else if ((fh = f.hash) == MOVED) //tab[i]处第一个元素已经被转移走表示正在扩容，当前线程协助一起扩容
                 tab = helpTransfer(tab, f);
             else if (onlyIfAbsent // check first node without acquiring lock
                      && fh == hash
@@ -2300,7 +2300,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                         @SuppressWarnings("unchecked")
                         Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n];
                         table = tab = nt;
-                        sc = n - (n >>> 2);
+                        sc = n - (n >>> 2);// sc = 0.75n
                     }
                 } finally {
                     sizeCtl = sc;
@@ -2385,7 +2385,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      *
      * @param size number of elements (doesn't need to be perfectly accurate)
      */
-    private final void tryPresize(int size) {
+    private final void tryPresize(int size) { //尝试扩容数组
         int c = (size >= (MAXIMUM_CAPACITY >>> 1)) ? MAXIMUM_CAPACITY :
             tableSizeFor(size + (size >>> 1) + 1);
         int sc;
@@ -2421,7 +2421,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * Moves and/or copies the nodes in each bin to new table. See
      * above for explanation.
      */
-    private final void transfer(Node<K,V>[] tab, Node<K,V>[] nextTab) { //nextTab 为扩容后的新数组
+    private final void transfer(Node<K,V>[] tab, Node<K,V>[] nextTab) { //转移元素
         int n = tab.length, stride;
         if ((stride = (NCPU > 1) ? (n >>> 3) / NCPU : n) < MIN_TRANSFER_STRIDE)
             stride = MIN_TRANSFER_STRIDE; // subdivide range
@@ -2439,7 +2439,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         }
         int nextn = nextTab.length;
         ForwardingNode<K,V> fwd = new ForwardingNode<K,V>(nextTab);
-        boolean advance = true;
+        boolean advance = true; // 判断是否需要对tab[]的下一个元素进行转移
         boolean finishing = false; // to ensure sweep before committing nextTab
         for (int i = 0, bound = 0;;) {
             Node<K,V> f; int fh;
@@ -2462,7 +2462,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
             }
             if (i < 0 || i >= n || i + n >= nextn) {
                 int sc;
-                if (finishing) {
+                if (finishing) {//完成转移
                     nextTable = null;
                     table = nextTab;
                     sizeCtl = (n << 1) - (n >>> 1);
@@ -2480,7 +2480,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
             else if ((fh = f.hash) == MOVED)
                 advance = true; // already processed
             else {
-                synchronized (f) {
+                synchronized (f) { //一个线程负责转移一个tab[]处的元素
                     if (tabAt(tab, i) == f) {
                         Node<K,V> ln, hn;
                         if (fh >= 0) {

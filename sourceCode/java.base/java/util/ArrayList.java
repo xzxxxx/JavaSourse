@@ -481,7 +481,7 @@ public class ArrayList<E> extends AbstractList<E>
         modCount++;
         final int s;
         Object[] elementData;
-        if ((s = size) == (elementData = this.elementData).length)
+        if ((s = size) == (elementData = this.elementData).length) //数组容量不够时，需要扩容
             elementData = grow();
         System.arraycopy(elementData, index,
                          elementData, index + 1,

@@ -628,9 +628,9 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
                    boolean evict) { //允许key，value都为null
         Node<K,V>[] tab; Node<K,V> p; int n, i;//p:tab[i]处的第一个元素  n：tab.length i:hash()后算出在tab[]中对应位置
-        if ((tab = table) == null || (n = tab.length) == 0)//tab尚未初始化
+        if ((tab = table) == null || (n = tab.length) == 0)//tab尚未初始化，n为2^n
             n = (tab = resize()).length;
-        if ((p = tab[i = (n - 1) & hash]) == null)//tab[i]处没有元素
+        if ((p = tab[i = (n - 1) & hash]) == null)//tab[i]处没有元素 ，n-1后n的二进制数的最后一位一定是1
             tab[i] = newNode(hash, key, value, null);
         else {
             Node<K,V> e; K k;

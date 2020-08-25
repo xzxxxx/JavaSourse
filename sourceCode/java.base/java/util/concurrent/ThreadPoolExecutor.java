@@ -382,6 +382,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     private static final int COUNT_MASK = (1 << COUNT_BITS) - 1;
 
     // runState is stored in the high-order bits
+    //线程池的5种状态
     private static final int RUNNING    = -1 << COUNT_BITS;
     private static final int SHUTDOWN   =  0 << COUNT_BITS;
     private static final int STOP       =  1 << COUNT_BITS;

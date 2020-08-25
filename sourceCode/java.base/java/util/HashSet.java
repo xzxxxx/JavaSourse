@@ -86,7 +86,7 @@ import jdk.internal.access.SharedSecrets;
  * @see     HashMap
  * @since   1.2
  */
-
+//本质是hashmap，value是一个不变的PRESENT对象
 public class HashSet<E>
     extends AbstractSet<E>
     implements Set<E>, Cloneable, java.io.Serializable

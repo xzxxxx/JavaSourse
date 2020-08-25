@@ -631,6 +631,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         if ((tab = table) == null || (n = tab.length) == 0)//tab尚未初始化，n为2^n
             n = (tab = resize()).length;
         if ((p = tab[i = (n - 1) & hash]) == null)//tab[i]处没有元素 ，n-1后n的二进制数的最后一位一定是1
+            //两个线程同时判断到tab[i]处== null，都要往这个位置放，会发生数据覆盖，因此是线程不安全的
             tab[i] = newNode(hash, key, value, null);
         else {
             Node<K,V> e; K k;

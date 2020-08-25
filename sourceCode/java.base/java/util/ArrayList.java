@@ -235,7 +235,8 @@ public class ArrayList<E> extends AbstractList<E>
                     oldCapacity >> 1           /* preferred growth */);
             return elementData = Arrays.copyOf(elementData, newCapacity);
         } else {
-            return elementData = new Object[Math.max(DEFAULT_CAPACITY, minCapacity)];
+            return elementData = new Object[
+                    Math.max(DEFAULT_CAPACITY, minCapacity)];
         }
     }
 

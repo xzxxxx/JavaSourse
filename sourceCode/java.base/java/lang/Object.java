@@ -212,6 +212,7 @@ public class Object {
      * @see java.lang.Cloneable
      */
     @HotSpotIntrinsicCandidate
+    //实现的是浅拷贝，若想要深拷贝需要实现Cloneable接口并重写clone方法
     protected native Object clone() throws CloneNotSupportedException;
 
     /**
